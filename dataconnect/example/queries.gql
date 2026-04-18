@@ -1,0 +1,48 @@
+query ListAllCourses @auth(level: PUBLIC, insecureReason: "This operation is safe to expose to the public as it only lists general course information.") {
+  courses {
+    id
+    name
+    code
+    year
+    description
+    educator {
+      displayName
+      email
+    }
+  }
+}
+
+query GetMyEnrollments @auth(level: USER, insecureReason: "This operation is safe to expose to all logged in users, as it only returns data specific to the authenticated user.") {
+  enrollments(where: {studentId: {eq_expr: "auth.uid"}}) {
+    enrollmentDate
+    course {
+      name
+      code
+      year
+    }
+  }
+}
+
+mutation CreateAssignment($courseId: UUID!, $name: String!, $totalPoints: Int!, $dueDate: Timestamp!, $description: String) @auth(expr: "auth.token.role == 'educator'", insecureReason: "This operation requires the user to have an 'educator' role to create assignments.") {
+  assignment_insert(data: {
+    courseId: $courseId,
+    name: $name,
+    totalPoints: $totalPoints,
+    dueDate: $dueDate,
+    description: $description
+  }) {
+    id
+  }
+}
+
+mutation SubmitGrade($studentId: UUID!, $assignmentId: UUID!, $score: Float!, $gradedAt: Timestamp!) @auth(expr: "auth.token.role == 'educator'", insecureReason: "This operation requires the user to have an 'educator' role to submit grades.") {
+  grade_insert(data: {
+    studentId: $studentId,
+    assignmentId: $assignmentId,
+    score: $score,
+    gradedAt: $gradedAt
+  }) {
+    studentId
+    assignmentId
+  }
+}

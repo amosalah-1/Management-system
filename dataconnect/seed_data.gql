@@ -1,0 +1,95 @@
+mutation CreateSeedData @transaction @auth(level: USER, insecureReason: "This operation is for seeding data and should only be run by authenticated users.") {
+  user_insertMany(data: [
+    {
+      id: "b450f75f-2c3b-48d6-96b4-21f5b0d06121",
+      displayName: "Alice Smith",
+      email: "alice.smith@example.com",
+      role: "student"
+    },
+    {
+      id: "a123b456-c789-012d-3ef0-1234567890ab",
+      displayName: "Bob Johnson",
+      email: "bob.johnson@example.com",
+      role: "educator"
+    },
+    {
+      id: "f8e7d6c5-b4a3-210e-9d8c-7b6a543210ef",
+      displayName: "Charlie Brown",
+      email: "charlie.brown@example.com",
+      role: "student"
+    }
+  ])
+  course_insertMany(data: [
+    {
+      id: "e0e1e2e3-e4e5-4e6e-a7e8-e9e0e1e2e3e4",
+      name: "Introduction to Programming",
+      code: "CS101",
+      year: 2024,
+      description: "A beginner-friendly course on programming fundamentals.",
+      educatorId: "a123b456-c789-012d-3ef0-1234567890ab"
+    },
+    {
+      id: "d0d1d2d3-d4d5-4d6d-a7d8-d9d0d1d2d3d4",
+      name: "Advanced Mathematics",
+      code: "MA301",
+      year: 2024,
+      description: "Exploring complex mathematical concepts and applications.",
+      educatorId: "a123b456-c789-012d-3ef0-1234567890ab"
+    }
+  ])
+  enrollment_insertMany(data: [
+    {
+      studentId: "b450f75f-2c3b-48d6-96b4-21f5b0d06121",
+      courseId: "e0e1e2e3-e4e5-4e6e-a7e8-e9e0e1e2e3e4",
+      enrollmentDate: "2024-01-15T09:00:00Z"
+    },
+    {
+      studentId: "f8e7d6c5-b4a3-210e-9d8c-7b6a543210ef",
+      courseId: "e0e1e2e3-e4e5-4e6e-a7e8-e9e0e1e2e3e4",
+      enrollmentDate: "2024-01-16T10:00:00Z"
+    },
+    {
+      studentId: "b450f75f-2c3b-48d6-96b4-21f5b0d06121",
+      courseId: "d0d1d2d3-d4d5-4d6d-a7d8-d9d0d1d2d3d4",
+      enrollmentDate: "2024-01-20T11:00:00Z"
+    }
+  ])
+  assignment_insertMany(data: [
+    {
+      id: "c0c1c2c3-c4c5-4c6c-a7c8-c9c0c1c2c3c4",
+      name: "First Programming Project",
+      totalPoints: 100,
+      dueDate: "2024-02-28T23:59:59Z",
+      description: "Implement a simple calculator application.",
+      courseId: "e0e1e2e3-e4e5-4e6e-a7e8-e9e0e1e2e3e4"
+    },
+    {
+      id: "b0b1b2b3-b4b5-4b6b-a7b8-b9b0b1b2b3b4",
+      name: "Algebra Midterm",
+      totalPoints: 50,
+      dueDate: "2024-03-15T12:00:00Z",
+      description: "Midterm exam covering algebra topics.",
+      courseId: "d0d1d2d3-d4d5-4d6d-a7d8-d9d0d1d2d3d4"
+    }
+  ])
+  grade_insertMany(data: [
+    {
+      studentId: "b450f75f-2c3b-48d6-96b4-21f5b0d06121",
+      assignmentId: "c0c1c2c3-c4c5-4c6c-a7c8-c9c0c1c2c3c4",
+      score: 95.5,
+      gradedAt: "2024-03-05T14:30:00Z"
+    },
+    {
+      studentId: "f8e7d6c5-b4a3-210e-9d8c-7b6a543210ef",
+      assignmentId: "c0c1c2c3-c4c5-4c6c-a7c8-c9c0c1c2c3c4",
+      score: 88.0,
+      gradedAt: "2024-03-06T11:00:00Z"
+    },
+    {
+      studentId: "b450f75f-2c3b-48d6-96b4-21f5b0d06121",
+      assignmentId: "b0b1b2b3-b4b5-4b6b-a7b8-b9b0b1b2b3b4",
+      score: 78.5,
+      gradedAt: "2024-03-20T09:00:00Z"
+    }
+  ])
+}

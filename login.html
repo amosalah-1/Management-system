@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login & Sign Up | StudentGrade Pro</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="auth-container">
+        <header>
+            <h1>StudentGrade Pro</h1>
+            <p>Join the community of high achievers.</p>
+        </header>
+
+        <main class="auth-card">
+            <!-- Login Form -->
+            <form id="login-form">
+                <h2>Login</h2>
+                <input type="email" id="login-email" placeholder="Email" required>
+                <input type="password" id="login-password" placeholder="Password" required>
+                <button type="submit" class="btn-primary">Login</button>
+                <p>New here? <a href="#" id="show-signup">Create an account</a></p>
+            </form>
+
+            <!-- Signup Form (Hidden by default) -->
+            <form id="signup-form" class="hidden">
+                <h2>Sign Up</h2>
+                <input type="text" id="signup-name" placeholder="Full Name" required>
+                <input type="text" id="signup-school" placeholder="School Name" required>
+                <input type="email" id="signup-email" placeholder="Email" required>
+                <input type="password" id="signup-password" placeholder="Password" required>
+                <button type="submit" class="btn-primary">Register Student</button>
+                <p>Already have an account? <a href="#" id="show-login">Login</a></p>
+            </form>
+        </main>
+    </div>
+
+    <script type="module" src="auth.js"></script>
+</body>
+</html>

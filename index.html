@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | StudentGrade Pro</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="dashboard-body">
+    <nav class="sidebar">
+        <div class="logo">SG Pro</div>
+        <ul>
+            <li><a href="#overview">Overview</a></li>
+            <li><a href="#grades">Grades</a></li>
+            <li><a href="#analytics">Analytics</a></li>
+            <li><a href="#settings">Settings</a></li>
+        </ul>
+        <button id="logout-btn" class="btn-secondary">Logout</button>
+    </nav>
+
+    <main class="content">
+        <header class="top-bar">
+            <h2 id="welcome-msg">Welcome, Student</h2>
+            <div class="header-actions">
+                <button id="export-csv-btn" class="btn-secondary-outline">Export CSV</button>
+                <button id="add-grade-btn" class="btn-primary">+ Add Grade</button>
+            </div>
+        </header>
+
+        <!-- Stats Overview -->
+        <section class="stats-grid">
+            <div class="stat-card"><h3>GPA</h3><p id="stat-gpa">0.00</p></div>
+            <div class="stat-card"><h3>Avg Score</h3><p id="stat-avg">0%</p></div>
+            <div class="stat-card"><h3>Subjects</h3><p id="stat-count">0</p></div>
+        </section>
+
+        <!-- Visuals -->
+        <section class="charts-container">
+            <div class="chart-box"><canvas id="trendChart"></canvas></div>
+            <div class="chart-box"><canvas id="distributionChart"></canvas></div>
+        </section>
+
+        <!-- Grade Table -->
+        <section class="grade-table-container">
+            <h3>Recent Grades</h3>
+            <table id="grades-table">
+                <thead>
+                    <tr>
+                        <th>Subject</th>
+                        <th>Score</th>
+                        <th>Grade</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="grade-list">
+                    <!-- Data injected by JS -->
+                </tbody>
+            </table>
+        </section>
+    </main>
+
+    <!-- Add Grade Modal -->
+    <div id="grade-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3>Add New Grade</h3>
+            <form id="add-grade-form">
+                <input type="text" id="grade-subject" placeholder="Subject (e.g. Math)" required>
+                <input type="number" id="grade-score" placeholder="Score (0-100)" min="0" max="100" required>
+                <select id="grade-letter" required>
+                    <option value="">Select Grade</option>
+                    <option value="A">A</option>
+                    <option value="B">B</option>
+                    <option value="C">C</option>
+                    <option value="D">D</option>
+                    <option value="F">F</option>
+                </select>
+                <input type="date" id="grade-date" required>
+                <div class="modal-actions">
+                    <button type="button" id="close-modal" class="btn-secondary">Cancel</button>
+                    <button type="submit" class="btn-primary">Save Grade</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script type="module" src="dashboard.js"></script>
+</body>
+</html>
