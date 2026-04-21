@@ -279,28 +279,55 @@ form:not(.hidden) {
 /* Mobile Adjustments */
 @media (max-width: 768px) {
     .dashboard-body { flex-direction: column; }
-    .sidebar { 
-        display: none; /* Hide sidebar on mobile to provide full-width content */
-        width: 100%; 
-        height: auto; 
-        position: relative; 
-    }
     
-    /* Class to show sidebar if you add a menu toggle button later */
+    .sidebar {
+        position: fixed;
+        left: -250px;
+        top: 0;
+        z-index: 1000;
+        transition: left 0.3s ease;
+        box-shadow: 10px 0 15px rgba(0,0,0,0.1);
+    }
+
     .sidebar.mobile-active {
-        display: block;
+        left: 0;
     }
 
     .content {
-        padding: 1rem;
+        padding: 1.25rem;
         width: 100%;
     }
 
     .top-bar {
         flex-direction: column;
         align-items: flex-start;
-        gap: 0.5rem;
+        gap: 1rem;
     }
+
+    .header-actions {
+        width: 100%;
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    .header-actions button {
+        flex: 1;
+        min-width: 140px;
+        font-size: 0.9rem;
+        padding: 0.6rem 1rem;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+    }
+
+    .stat-card {
+        padding: 1rem;
+    }
+
+    .stat-card h3 { font-size: 0.9rem; }
+    .stat-card p { font-size: 1.25rem; }
 }
 
 /* Modal Styles */
