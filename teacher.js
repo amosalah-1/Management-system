@@ -12,8 +12,7 @@ import {
     updateGrade,
     deleteGrade,
     getUserData,
-    getStudentGrades,
-    getClassesByTeacher
+    getStudentGrades
 } from './db.js';
 
 let currentTeacher = null;
@@ -40,17 +39,18 @@ onAuthStateChanged(auth, async (user) => {
 // Navigation
 document.querySelectorAll('.nav-link').forEach(link => {
     link.addEventListener('click', (e) => {
-        if (e.target.id === 'logout-btn') {
+        const targetLink = e.currentTarget;
+        if (targetLink.id === 'logout-btn') {
             handleLogout();
             return;
         }
         
-        const section = e.target.dataset.section;
+        const section = targetLink.dataset.section;
         if (section) {
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
             document.getElementById(section).classList.add('active');
             document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-            e.target.classList.add('active');
+            targetLink.classList.add('active');
 
             if (section === 'students') loadMyStudents();
             if (section === 'grades') loadClassStudentsForGrading();
