@@ -1,16 +1,22 @@
 import { auth } from './firebase-config.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { getUserGrades, deleteGrade, addGrade } from './db.js';
+import { getUserGrades, deleteGrade, addGrade, updateGrade, getUserData } from './db.js';
 import { calculateGPA, calculateAverage } from './utils.js';
 
 let trendChart;
 let distChart;
+let editingGradeId = null;
 
 // 1. Check Authentication State
-onAuthStateChanged(auth, (user) => {
+onAuthStateChanged(auth, async (user) => {
     if (user) {
-        document.getElementById('welcome-msg').innerText = `Welcome, ${user.displayName || 'Student'}`;
-        loadDashboardData(user.uid);
+        const userData = await getUserData(user.uid);
+        if (userData && userData.role === 'student') {
+            document.getElementById('welcome-msg').innerText = `Welcome, ${userData.fullName || 'Student'}`;
+            loadDashboardData(user.uid);
+        } else {
+            window.location.href = 'login.html';
+        }
     } else {
         // If no user is logged in, redirect to login page
         window.location.href = 'login.html'; 
@@ -48,13 +54,14 @@ function renderTable(grades) {
             <td>${g.score}%</td>
             <td>${g.gradeLetter}</td>
             <td>${new Date(g.date).toLocaleDateString()}</td>
-            <td>
+            <td class="table-actions">
+                <button class="btn-edit" data-id="${g.id}">Edit</button>
                 <button class="btn-delete" data-id="${g.id}">Delete</button>
             </td>
         </tr>
     `).join('');
 
-    // Attach delete listeners
+    // Attach listeners
     document.querySelectorAll('.btn-delete').forEach(btn => {
         btn.addEventListener('click', async (e) => {
             if(confirm('Are you sure you want to delete this grade?')) {
@@ -63,6 +70,23 @@ function renderTable(grades) {
             }
         });
     });
+
+    document.querySelectorAll('.btn-edit').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const grade = grades.find(g => g.id === e.target.dataset.id);
+            if (grade) openEditModal(grade);
+        });
+    });
+}
+
+function openEditModal(grade) {
+    editingGradeId = grade.id;
+    document.getElementById('modal-title').innerText = "Edit Grade";
+    document.getElementById('grade-subject').value = grade.subject;
+    document.getElementById('grade-score').value = grade.score;
+    document.getElementById('grade-letter').value = grade.gradeLetter;
+    document.getElementById('grade-date').value = grade.date;
+    modal.classList.remove('hidden');
 }
 
 function renderCharts(grades) {
@@ -127,26 +151,47 @@ const addBtn = document.getElementById('add-grade-btn');
 const closeBtn = document.getElementById('close-modal');
 const gradeForm = document.getElementById('add-grade-form');
 
-addBtn.onclick = () => modal.classList.remove('hidden');
-closeBtn.onclick = () => modal.classList.add('hidden');
+addBtn.onclick = () => {
+    editingGradeId = null;
+    document.getElementById('modal-title').innerText = "Add New Grade";
+    gradeForm.reset();
+    modal.classList.remove('hidden');
+};
+
+closeBtn.onclick = () => {
+    modal.classList.add('hidden');
+    editingGradeId = null;
+};
 
 gradeForm.onsubmit = async (e) => {
     e.preventDefault();
+    
+    if (!auth.currentUser) {
+        alert("You must be logged in to add a grade.");
+        return;
+    }
+
     const gradeData = {
         subject: document.getElementById('grade-subject').value,
-        score: document.getElementById('grade-score').value,
+        score: Number(document.getElementById('grade-score').value), // Convert to Number
         gradeLetter: document.getElementById('grade-letter').value,
         date: document.getElementById('grade-date').value
     };
 
     try {
-        await addGrade(auth.currentUser.uid, gradeData);
+        if (editingGradeId) {
+            await updateGrade(editingGradeId, gradeData);
+        } else {
+            await addGrade(auth.currentUser.uid, gradeData);
+        }
+        
         gradeForm.reset();
         modal.classList.add('hidden');
+        editingGradeId = null;
         loadDashboardData(auth.currentUser.uid); // Refresh UI
     } catch (error) {
-        console.error("Error adding grade:", error);
-        alert("Failed to add grade.");
+        console.error("Detailed Firestore Error:", error.code, error.message);
+        alert(`Failed to save grade: ${error.message}`);
     }
 };
 

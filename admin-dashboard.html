@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Kenyan School System</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .admin-container {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            min-height: 100vh;
+        }
+
+        .admin-sidebar {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .admin-sidebar h2 {
+            margin-top: 0;
+            font-size: 18px;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+
+        .admin-sidebar nav a {
+            display: block;
+            padding: 12px;
+            margin: 5px 0;
+            background: #34495e;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .admin-sidebar nav a:hover,
+        .admin-sidebar nav a.active {
+            background: #3498db;
+        }
+
+        .admin-content {
+            padding: 30px;
+            background: #ecf0f1;
+            overflow-y: auto;
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .dashboard-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            margin: 0;
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+
+        .stat-card .value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 10px 0;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .form-group button {
+            background: #3498db;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .form-group button:hover {
+            background: #2980b9;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: #34495e;
+            color: white;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            margin: 0 2px;
+            font-size: 12px;
+            cursor: pointer;
+            border: none;
+            border-radius: 4px;
+        }
+
+        .btn-edit {
+            background: #f39c12;
+            color: white;
+        }
+
+        .btn-delete {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-assign {
+            background: #27ae60;
+            color: white;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .logout-btn {
+            background: #e74c3c;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #7f8c8d;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Sidebar Navigation -->
+        <aside class="admin-sidebar">
+            <h2>Admin Panel</h2>
+            <nav>
+                <a class="nav-link active" data-section="dashboard">Dashboard</a>
+                <a class="nav-link" data-section="users">Manage Users</a>
+                <a class="nav-link" data-section="teachers">Manage Teachers</a>
+                <a class="nav-link" data-section="classes">Manage Classes</a>
+                <a class="nav-link" data-section="students">Manage Students</a>
+                <a class="nav-link" data-section="grades">View Grades</a>
+                <hr style="border: none; border-top: 1px solid #555; margin: 20px 0;">
+                <a class="nav-link" id="logout-btn" style="background: #e74c3c;">Logout</a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="admin-content">
+            <!-- Dashboard Section -->
+            <section id="dashboard" class="section active">
+                <div class="header">
+                    <h1>Admin Dashboard</h1>
+                    <span id="admin-name"></span>
+                </div>
+
+                <div class="dashboard-stats">
+                    <div class="stat-card">
+                        <h3>Total Teachers</h3>
+                        <div class="value" id="stat-teachers">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Total Students</h3>
+                        <div class="value" id="stat-students">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Total Classes</h3>
+                        <div class="value" id="stat-classes">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Grades Added</h3>
+                        <div class="value" id="stat-grades">0</div>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <h3>Recent System Activity</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Activity</th>
+                                <th>User</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="activity-log">
+                            <tr><td colspan="3">No activities yet</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Manage Users Section -->
+            <section id="users" class="section">
+                <div class="header">
+                    <h1>Manage All Users</h1>
+                </div>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-table">
+                            <tr><td colspan="5">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Teachers Section -->
+            <section id="teachers" class="section">
+                <div class="header">
+                    <h1>Manage Teachers</h1>
+                    <button class="form-group button" onclick="openTeacherModal()">Add New Teacher</button>
+                </div>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Classes</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="teachers-table">
+                            <tr><td colspan="5">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Classes Section -->
+            <section id="classes" class="section">
+                <div class="header">
+                    <h1>Manage Classes</h1>
+                    <button class="form-group button" onclick="openClassModal()">Create New Class</button>
+                </div>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Class Name</th>
+                                <th>Grade</th>
+                                <th>Teacher</th>
+                                <th>Students</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="classes-table">
+                            <tr><td colspan="5">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Students Section -->
+            <section id="students" class="section">
+                <div class="header">
+                    <h1>All Students in School</h1>
+                </div>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Student Name</th>
+                                <th>Admission No.</th>
+                                <th>Class</th>
+                                <th>Date of Birth</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="students-table">
+                            <tr><td colspan="5">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Grades Section -->
+            <section id="grades" class="section">
+                <div class="header">
+                    <h1>System Grades Overview</h1>
+                </div>
+
+                <div class="form-group">
+                    <label>Filter by Class:</label>
+                    <select id="grades-class-filter" onchange="loadGradesView()">
+                        <option value="">All Classes</option>
+                    </select>
+                </div>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Student</th>
+                                <th>Subject</th>
+                                <th>Score</th>
+                                <th>Grade</th>
+                                <th>Teacher</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="grades-table">
+                            <tr><td colspan="6">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <div id="teacher-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="teacher-modal-title">Add New Teacher</h2>
+                <button class="close-btn" onclick="closeTeacherModal()">&times;</button>
+            </div>
+            <form id="teacher-form">
+                <div class="form-group">
+                    <label>Full Name:</label>
+                    <input type="text" id="teacher-name" required>
+                </div>
+                <div class="form-group">
+                    <label>Email:</label>
+                    <input type="email" id="teacher-email" required>
+                </div>
+                <div class="form-group">
+                    <label>Create Account:</label>
+                    <select id="teacher-action">
+                        <option value="create">Create new account</option>
+                        <option value="assign">Assign existing user</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Password (if creating account):</label>
+                    <input type="password" id="teacher-password">
+                </div>
+                <div class="form-group">
+                    <button type="submit">Save Teacher</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="class-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Create New Class</h2>
+                <button class="close-btn" onclick="closeClassModal()">&times;</button>
+            </div>
+            <form id="class-form">
+                <div class="form-group">
+                    <label>Class Name:</label>
+                    <input type="text" id="class-name" placeholder="e.g., Class 1A" required>
+                </div>
+                <div class="form-group">
+                    <label>Grade Level:</label>
+                    <select id="class-grade" required>
+                        <option value="">Select Grade</option>
+                        <option value="1">Grade 1</option>
+                        <option value="2">Grade 2</option>
+                        <option value="3">Grade 3</option>
+                        <option value="4">Grade 4</option>
+                        <option value="5">Grade 5</option>
+                        <option value="6">Grade 6</option>
+                        <option value="7">Grade 7</option>
+                        <option value="8">Grade 8</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Assign Teacher:</label>
+                    <select id="class-teacher" required>
+                        <option value="">Loading teachers...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <button type="submit">Create Class</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="student-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add Student</h2>
+                <button class="close-btn" onclick="closeStudentModal()">&times;</button>
+            </div>
+            <form id="student-form">
+                <div class="form-group">
+                    <label>Student Name:</label>
+                    <input type="text" id="student-name" required>
+                </div>
+                <div class="form-group">
+                    <label>Admission Number:</label>
+                    <input type="text" id="student-admission" required>
+                </div>
+                <div class="form-group">
+                    <label>Class:</label>
+                    <select id="student-class" required>
+                        <option value="">Select Class</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Date of Birth:</label>
+                    <input type="date" id="student-dob">
+                </div>
+                <div class="form-group">
+                    <button type="submit">Add Student</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script type="module" src="admin.js"></script>
+</body>
+</html>

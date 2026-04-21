@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Dashboard - Kenyan School System</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .teacher-container {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            min-height: 100vh;
+        }
+
+        .teacher-sidebar {
+            background: #16a085;
+            color: white;
+            padding: 20px;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .teacher-sidebar h2 {
+            margin-top: 0;
+            font-size: 18px;
+            border-bottom: 2px solid #1abc9c;
+            padding-bottom: 10px;
+        }
+
+        .teacher-sidebar nav a {
+            display: block;
+            padding: 12px;
+            margin: 5px 0;
+            background: #117a65;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .teacher-sidebar nav a:hover,
+        .teacher-sidebar nav a.active {
+            background: #1abc9c;
+        }
+
+        .teacher-content {
+            padding: 30px;
+            background: #ecf0f1;
+            overflow-y: auto;
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+            display: inline-block;
+            margin-right: 20px;
+            min-width: 200px;
+        }
+
+        .stat-card h3 {
+            margin: 0;
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+
+        .stat-card .value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #16a085;
+            margin: 10px 0;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            max-width: 500px;
+            padding: 10px;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .form-group button {
+            background: #16a085;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .form-group button:hover {
+            background: #138d75;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: #117a65;
+            color: white;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            margin: 0 2px;
+            font-size: 12px;
+            cursor: pointer;
+            border: none;
+            border-radius: 4px;
+        }
+
+        .btn-add-grade {
+            background: #16a085;
+            color: white;
+        }
+
+        .btn-edit-grade {
+            background: #f39c12;
+            color: white;
+        }
+
+        .btn-delete-grade {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .logout-btn {
+            background: #e74c3c;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #7f8c8d;
+        }
+    </style>
+</head>
+<body>
+    <div class="teacher-container">
+        <!-- Sidebar Navigation -->
+        <aside class="teacher-sidebar">
+            <h2>Teacher Panel</h2>
+            <nav>
+                <a class="nav-link active" data-section="dashboard">My Classes</a>
+                <a class="nav-link" data-section="students">My Students</a>
+                <a class="nav-link" data-section="grades">Grade Students</a>
+                <a class="nav-link" data-section="records">Grade Records</a>
+                <hr style="border: none; border-top: 1px solid #555; margin: 20px 0;">
+                <a class="nav-link" id="logout-btn" style="background: #e74c3c;">Logout</a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="teacher-content">
+            <!-- Dashboard Section -->
+            <section id="dashboard" class="section active">
+                <div class="header">
+                    <h1>My Classes</h1>
+                    <span id="teacher-name"></span>
+                </div>
+
+                <div id="classes-overview">
+                    <!-- Classes will be loaded here -->
+                </div>
+            </section>
+
+            <!-- Students Section -->
+            <section id="students" class="section">
+                <div class="header">
+                    <h1>My Students</h1>
+                    <button class="form-group button" onclick="openAddStudentModal()" style="background: #16a085; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;">+ Add Student</button>
+                </div>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Student Name</th>
+                                <th>Admission No.</th>
+                                <th>Date of Birth</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="students-table">
+                            <tr><td colspan="4">Loading your students...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Grade Students Section -->
+            <section id="grades" class="section">
+                <div class="header">
+                    <h1>Add/Edit Grades</h1>
+                    <select id="grade-class-filter" onchange="loadClassStudentsForGrading()">
+                        <option value="">Select Class</option>
+                    </select>
+                </div>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Student Name</th>
+                                <th>Subject</th>
+                                <th>Latest Score</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="grading-table">
+                            <tr><td colspan="4">Select a class to start grading</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Grade Records Section -->
+            <section id="records" class="section">
+                <div class="header">
+                    <h1>My Grade Records</h1>
+                </div>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Student</th>
+                                <th>Subject</th>
+                                <th>Score</th>
+                                <th>Grade</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="records-table">
+                            <tr><td colspan="6">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Add Student Modal -->
+    <div id="student-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add Student</h2>
+                <button class="close-btn" onclick="closeAddStudentModal()">&times;</button>
+            </div>
+            <form id="student-form">
+                <div class="form-group">
+                    <label>Student Name:</label>
+                    <input type="text" id="student-name" placeholder="Full Name" required>
+                </div>
+                <div class="form-group">
+                    <label>Admission Number:</label>
+                    <input type="text" id="admission-no" placeholder="e.g., 2024-001" required>
+                </div>
+                <div class="form-group">
+                    <label>Date of Birth:</label>
+                    <input type="date" id="student-dob" required>
+                </div>
+                <div class="form-group">
+                    <button type="submit" style="background: #16a085; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; width: 100%;">Add Student</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Grade Modal -->
+    <div id="grade-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="grade-modal-title">Add Grade</h2>
+                <button class="close-btn" onclick="closeGradeModal()">&times;</button>
+            </div>
+            <form id="grade-form">
+                <div class="form-group">
+                    <label>Student Name:</label>
+                    <input type="text" id="grade-student-name" disabled>
+                </div>
+                <div class="form-group">
+                    <label>Subject:</label>
+                    <select id="grade-subject" required>
+                        <option value="">Select Subject</option>
+                        <option value="English">English</option>
+                        <option value="Kiswahili">Kiswahili</option>
+                        <option value="Mathematics">Mathematics</option>
+                        <option value="Science">Science</option>
+                        <option value="Social Studies">Social Studies</option>
+                        <option value="Creative Arts">Creative Arts</option>
+                        <option value="Physical Education">Physical Education</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Score (0-100):</label>
+                    <input type="number" id="grade-score" min="0" max="100" required>
+                </div>
+                <div class="form-group">
+                    <label>Grade Letter:</label>
+                    <select id="grade-letter" required>
+                        <option value="">Select Grade</option>
+                        <option value="A">A (90-100)</option>
+                        <option value="B">B (80-89)</option>
+                        <option value="C">C (70-79)</option>
+                        <option value="D">D (60-69)</option>
+                        <option value="E">E (50-59)</option>
+                        <option value="F">F (Below 50)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Date:</label>
+                    <input type="date" id="grade-date" required>
+                </div>
+                <div class="form-group">
+                    <label>Remarks:</label>
+                    <textarea id="grade-remarks" rows="3" placeholder="Optional remarks..."></textarea>
+                </div>
+                <div class="form-group">
+                    <button type="submit">Save Grade</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script type="module" src="teacher.js"></script>
+</body>
+</html>
