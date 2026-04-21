@@ -12,7 +12,8 @@ import {
     updateGrade,
     deleteGrade,
     getUserData,
-    getStudentGrades
+    getStudentGrades,
+    getClassesByTeacher
 } from './db.js';
 
 let currentTeacher = null;
@@ -129,8 +130,20 @@ async function loadMyStudents() {
 }
 
 function openAddStudentModal() {
-    document.getElementById('student-modal').classList.add('active');
-    document.getElementById('student-form').reset();
+    const modal = document.getElementById('student-modal');
+    const form = document.getElementById('student-form');
+    const classSelect = document.getElementById('student-class');
+
+    modal.classList.add('active');
+    form.reset();
+
+    // Populate classes for this teacher
+    getClassesByTeacher(currentTeacher.id).then(classes => {
+        if (classSelect) {
+            classSelect.innerHTML = '<option value="">Select Class</option>' + 
+                classes.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+        }
+    });
 }
 
 function closeAddStudentModal() {
@@ -143,16 +156,24 @@ document.getElementById('student-form').addEventListener('submit', async (e) => 
     e.preventDefault();
     
     const name = document.getElementById('student-name').value;
-    const admissionNo = document.getElementById('admission-no').value;
+    const admissionNo = document.getElementById('student-admission').value;
+    const classId = document.getElementById('student-class').value;
+    const className = document.getElementById('student-class').options[document.getElementById('student-class').selectedIndex].text;
     const dob = document.getElementById('student-dob').value;
+
+    if (!classId) {
+        alert("Please select a class for the student.");
+        return;
+    }
 
     try {
         await addStudent({
             name: name,
             admissionNumber: admissionNo,
             dateOfBirth: dob,
+            classId: classId,
+            className: className,
             teacherId: currentTeacher.id,
-            className: currentTeacher.classRoom,
             createdAt: new Date().toISOString()
         });
 
