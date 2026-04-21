@@ -1,6 +1,6 @@
 import { auth, db } from './firebase-config.js';
 import { 
-    doc, setDoc, collection, query, where, getDocs 
+    doc, setDoc, collection, query, where, getDocs, deleteDoc, updateDoc 
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { 
     signOut, onAuthStateChanged, createUserWithEmailAndPassword, updateProfile, getAuth 
@@ -43,11 +43,147 @@ window.closeTeacherModal = () => {
 window.openClassModal = () => document.getElementById('class-modal').classList.add('active');
 window.closeClassModal = () => document.getElementById('class-modal').classList.remove('active');
 window.closeStudentModal = () => document.getElementById('student-modal').classList.remove('active');
+window.openStudentModal = () => document.getElementById('student-modal').classList.add('active');
 
-// Initialize Admin Info
-onAuthStateChanged(auth, (user) => {
-    if (user && document.getElementById('admin-name')) {
-        document.getElementById('admin-name').textContent = user.displayName || user.email;
+// Data Fetching Logic
+async function loadDashboardStats() {
+    try {
+        const teachersSnap = await getDocs(query(collection(db, "users"), where("role", "==", "teacher")));
+        const studentsSnap = await getDocs(collection(db, "students"));
+        const classesSnap = await getDocs(collection(db, "classes"));
+        const gradesSnap = await getDocs(collection(db, "grades"));
+
+        document.getElementById('stat-teachers').textContent = teachersSnap.size;
+        document.getElementById('stat-students').textContent = studentsSnap.size;
+        document.getElementById('stat-classes').textContent = classesSnap.size;
+        document.getElementById('stat-grades').textContent = gradesSnap.size;
+    } catch (e) { console.error("Stats Error:", e); }
+}
+
+async function loadUsersTable() {
+    const tbody = document.getElementById('users-table');
+    if (!tbody) return;
+    const snap = await getDocs(collection(db, "users"));
+    tbody.innerHTML = '';
+    snap.forEach(doc => {
+        const data = doc.data();
+        tbody.innerHTML += `
+            <tr>
+                <td>${data.fullName || 'N/A'}</td>
+                <td>${data.email}</td>
+                <td>${data.role}</td>
+                <td>${data.isActive ? 'Active' : 'Inactive'}</td>
+                <td>
+                    <button class="btn-small btn-edit" onclick="window.toggleUserStatus('${doc.id}', ${data.isActive})">Toggle</button>
+                </td>
+            </tr>
+        `;
+    });
+}
+
+async function loadTeachersTable() {
+    const tbody = document.getElementById('teachers-table');
+    if (!tbody) return;
+    const snap = await getDocs(query(collection(db, "users"), where("role", "==", "teacher")));
+    tbody.innerHTML = '';
+    snap.forEach(doc => {
+        const data = doc.data();
+        tbody.innerHTML += `
+            <tr>
+                <td>${data.fullName}</td>
+                <td>${data.email}</td>
+                <td>${data.classRoom || 'None'}</td>
+                <td>${data.isActive ? 'Active' : 'Inactive'}</td>
+                <td>
+                    <button class="btn-small btn-delete" onclick="window.deleteRecord('users', '${doc.id}')">Delete</button>
+                </td>
+            </tr>
+        `;
+    });
+}
+
+async function loadClassesTable() {
+    const tbody = document.getElementById('classes-table');
+    if (!tbody) return;
+    const snap = await getDocs(collection(db, "classes"));
+    tbody.innerHTML = '';
+    snap.forEach(doc => {
+        const data = doc.data();
+        tbody.innerHTML += `
+            <tr>
+                <td>${data.name}</td>
+                <td>Grade ${data.grade}</td>
+                <td>${data.teacherName || 'Unassigned'}</td>
+                <td>-</td>
+                <td>
+                    <button class="btn-small btn-delete" onclick="window.deleteRecord('classes', '${doc.id}')">Delete</button>
+                </td>
+            </tr>
+        `;
+    });
+}
+
+async function loadStudentsTable() {
+    const tbody = document.getElementById('students-table');
+    if (!tbody) return;
+    const snap = await getDocs(collection(db, "students"));
+    tbody.innerHTML = '';
+    snap.forEach(doc => {
+        const data = doc.data();
+        tbody.innerHTML += `
+            <tr>
+                <td>${data.name}</td>
+                <td>${data.admissionNumber}</td>
+                <td>${data.className || 'N/A'}</td>
+                <td>${data.dateOfBirth || 'N/A'}</td>
+                <td>
+                    <button class="btn-small btn-delete" onclick="window.deleteRecord('students', '${doc.id}')">Delete</button>
+                </td>
+            </tr>
+        `;
+    });
+}
+
+window.loadGradesView = async () => {
+    const tbody = document.getElementById('grades-table');
+    const filter = document.getElementById('grades-class-filter').value;
+    if (!tbody) return;
+    
+    let q = collection(db, "grades");
+    if (filter) q = query(q, where("classId", "==", filter));
+    
+    const snap = await getDocs(q);
+    tbody.innerHTML = snap.empty ? '<tr><td colspan="6">No grades found</td></tr>' : '';
+    snap.forEach(doc => {
+        const data = doc.data();
+        tbody.innerHTML += `
+            <tr>
+                <td>${data.studentName}</td>
+                <td>${data.subject}</td>
+                <td>${data.score}</td>
+                <td>${data.gradeLetter}</td>
+                <td>${data.teacherName}</td>
+                <td>${data.date}</td>
+            </tr>
+        `;
+    });
+};
+
+// Initialize Admin Dashboard
+onAuthStateChanged(auth, async (user) => {
+    if (user) {
+        if (document.getElementById('admin-name')) {
+            document.getElementById('admin-name').textContent = user.displayName || user.email;
+        }
+        // Fetch and display all system data
+        await loadDashboardStats();
+        await loadUsersTable();
+        await loadTeachersTable();
+        await loadClassesTable();
+        await loadStudentsTable();
+        await window.loadGradesView();
+    } else {
+        window.location.href = 'login.html';
     }
 });
 
@@ -117,3 +253,15 @@ document.getElementById('teacher-action').addEventListener('change', (e) => {
     const passwordGroup = passwordInput.parentElement;
     passwordGroup.style.display = e.target.value === 'create' ? 'block' : 'none';
 });
+
+// Action Handlers
+window.toggleUserStatus = async (uid, currentStatus) => {
+    await updateDoc(doc(db, "users", uid), { isActive: !currentStatus });
+    loadUsersTable();
+};
+
+window.deleteRecord = async (col, id) => {
+    if (!confirm("Are you sure you want to delete this record? This cannot be undone.")) return;
+    await deleteDoc(doc(db, col, id));
+    location.reload(); 
+};
