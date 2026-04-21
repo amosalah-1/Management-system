@@ -36,7 +36,7 @@ body {
 }
 
 .auth-container h1 {
-    font-size: 2.75rem;
+    font-size: 2.25rem;
     color: var(--primary);
     margin-bottom: 0.5rem;
     font-weight: 700;
@@ -54,7 +54,7 @@ body {
     border-radius: 16px; 
     box-shadow: 0 20px 40px rgba(0,0,0,0.1); 
     width: 100%; 
-    max-width: 420px; 
+    max-width: 450px; 
 }
 
 .hidden { display: none !important; }
@@ -194,9 +194,25 @@ form:not(.hidden) {
 }
 
 /* Mobile view - single column */
-@media (max-width: 600px) {
+@media (max-width: 500px) {
+    .auth-container h1 {
+        font-size: 1.8rem;
+    }
+    .auth-card {
+        padding: 1.5rem;
+    }
     .role-selector {
         grid-template-columns: 1fr;
+    }
+    .role-card-content {
+        padding: 1rem;
+        flex-direction: row;
+        text-align: left;
+        gap: 1rem;
+    }
+    .role-icon {
+        font-size: 1.8rem;
+        margin-bottom: 0;
     }
 }
 
