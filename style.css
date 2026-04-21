@@ -279,7 +279,28 @@ form:not(.hidden) {
 /* Mobile Adjustments */
 @media (max-width: 768px) {
     .dashboard-body { flex-direction: column; }
-    .sidebar { width: 100%; height: auto; position: relative; }
+    .sidebar { 
+        display: none; /* Hide sidebar on mobile to provide full-width content */
+        width: 100%; 
+        height: auto; 
+        position: relative; 
+    }
+    
+    /* Class to show sidebar if you add a menu toggle button later */
+    .sidebar.mobile-active {
+        display: block;
+    }
+
+    .content {
+        padding: 1rem;
+        width: 100%;
+    }
+
+    .top-bar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
 }
 
 /* Modal Styles */
